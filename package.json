@@ -2,14 +2,15 @@
   "name": "mysql-api-ads",
   "version": "1.0.0",
   "main": "index.js",
-"scripts": {
+  "scripts": {
     "start": "ts-node --transpile-only src/index.ts"
-},
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "date-fns": "^4.1.0",
     "ejs": "^3.1.10",
     "express": "^4.21.0",
     "mysql2": "^3.11.3"

@@ -1,6 +1,7 @@
 import express, {Request, Response} from "express";
 import { connect } from "http2";
 import mysql from "mysql2/promise";
+import { format } from 'date-fns';
 
 const app = express();
 
@@ -22,13 +23,14 @@ app.get('/users', async function (req: Request, res: Response) {
     try {
         const [rows] = await connection.query("SELECT * FROM users");
         return res.render('users/index', {
-            users: rows
+            users: rows  //
         });
     } catch (err) {
         console.error(err);
         res.status(500).send("Erro ao buscar usuários");
     }
 });
+
 
 const port = 3000;
 app.listen(port, () => {
