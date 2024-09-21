@@ -16,3 +16,12 @@ CREATE TABLE users (
 -- Inserir Tabela
 INSERT INTO users (nome, email, senha, papel, ativo) 
 VALUES ('Matheus', 'szmatheussouza@gmail.com', 'admin123', 'admin', 1);
+
+-- Alterar informação da tela
+UPDATE users
+SET nome = 'Henrique',
+    email = 'matheus_009@icloud.com',
+    senha = 'admin123',
+    papel = 'Moderador'
+    ativo = 0
+    where id = 2;

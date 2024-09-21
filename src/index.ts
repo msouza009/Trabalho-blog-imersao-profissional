@@ -23,7 +23,7 @@ app.get('/users', async function (req: Request, res: Response) {
     try {
         const [rows] = await connection.query("SELECT * FROM users");
         return res.render('users/index', {
-            users: rows  //
+            users: rows  
         });
     } catch (err) {
         console.error(err);
@@ -31,6 +31,33 @@ app.get('/users', async function (req: Request, res: Response) {
     }
 });
 
+app.get('/users/add', async function (req: Request, res: Response) {
+    return res.render('users/add'); 
+});
+
+app.post('/users', async (req, res) => {
+    const { nome, email, senha, confirmSenha, papel, ativo } = req.body;
+
+    if (!nome || !email || !senha || !papel) {
+        return res.status(400).send('Todos os campos são obrigatórios.');
+    }
+
+    if (senha !== confirmSenha) {
+        return res.status(400).send('As senhas não coincidem.');
+    }
+
+    const ativoValue = ativo ? 1 : 0;
+
+    try {
+        await connection.query('INSERT INTO users (nome, email, senha, papel, ativo) VALUES (?, ?, ?, ?, ?)', 
+            [nome, email, senha, papel, ativoValue]);
+
+        res.redirect('/users'); 
+    } catch (error) {
+        console.error('Erro ao cadastrar usuário:', error);
+        res.status(500).send('Erro ao cadastrar usuário.');
+    }
+});
 
 const port = 3000;
 app.listen(port, () => {
