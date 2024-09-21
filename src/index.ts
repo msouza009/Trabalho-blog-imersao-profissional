@@ -23,12 +23,16 @@ app.get('/users', async function (req: Request, res: Response) {
     try {
         const [rows] = await connection.query("SELECT * FROM users");
         return res.render('users/index', {
-            users: rows  //
+            users: rows  
         });
     } catch (err) {
         console.error(err);
         res.status(500).send("Erro ao buscar usuários");
     }
+});
+
+app.get('/users/add', async function (req: Request, res: Response) {
+    return res.render('users/add'); 
 });
 
 
