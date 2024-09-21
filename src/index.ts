@@ -9,7 +9,7 @@ app.set('view engine', 'ejs');
 app.set('views', `${__dirname}/views`);
 
 const connection = mysql.createPool({
-    host: "localhost",
+    host: "db",
     port: 3306,
     user: "root",
     password: "mudar123",
@@ -56,6 +56,21 @@ app.post('/users', async (req, res) => {
     } catch (error) {
         console.error('Erro ao cadastrar usuário:', error);
         res.status(500).send('Erro ao cadastrar usuário.');
+    }
+});
+
+app.delete('/users/:id/delete', async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const userId = parseInt(id);
+
+    try {
+        await connection.query('DELETE FROM users WHERE id = ?', [userId]);
+
+        // Responde com 204, pois a exclusão foi realizada
+        res.status(204).send(); // No Content
+    } catch (error) {
+        console.error('Erro ao excluir usuário:', error);
+        res.status(500).send('Erro ao excluir usuário.');
     }
 });
 
