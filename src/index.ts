@@ -28,11 +28,22 @@ app.use(session({
     cookie: { secure: false }
 }));
 
-app.get('/', async (req: Request, res: Response) => {
-    return res.render('index');
+function isAuthenticated(req: Request, res: Response, next: () => void) {
+    if (!req.session.userId) {
+        return res.redirect('/login');
+    }
+    next();
+}
+
+app.get('/', (req: Request, res: Response) => {
+    if (req.session.userId) {
+        return res.render('index', { userName: req.session.userName });
+    } else {
+        return res.redirect('/login');
+    }
 });
 
-app.get('/login', async (req: Request, res: Response) => {
+app.get('/login', (req: Request, res: Response) => {
     return res.render('users/login'); 
 });
 
@@ -59,14 +70,14 @@ app.post('/login', async (req: Request, res: Response) => {
         req.session.userId = user.id;
         req.session.userName = user.nome;
 
-        res.redirect('/users');
+        res.redirect('/');
     } catch (error) {
         console.log('Erro ao realizar login:', error);
         res.status(500).send('Erro ao realizar login');
     }
 });
 
-app.get('/users', async (req: Request, res: Response) => {
+app.get('/users', isAuthenticated, async (req: Request, res: Response) => {
     try {
         const [rows] = await connection.query("SELECT * FROM users");
         return res.render('users/index', {
@@ -78,11 +89,11 @@ app.get('/users', async (req: Request, res: Response) => {
     }
 });
 
-app.get('/users/add', async (req: Request, res: Response) => {
+app.get('/users/add', isAuthenticated, async (req: Request, res: Response) => {
     return res.render('users/add'); 
 });
 
-app.post('/users', async (req: Request, res: Response) => {
+app.post('/users', isAuthenticated, async (req: Request, res: Response) => {
     const { nome, email, senha, confirmSenha, papel, ativo } = req.body;
 
     if (!nome || !email || !senha || !papel) {
@@ -95,7 +106,6 @@ app.post('/users', async (req: Request, res: Response) => {
 
     const ativoValue = ativo ? 1 : 0;
 
-    // Hash a senha antes de armazenar
     const saltRounds = 10;
     try {
         const hashedPassword = await bcrypt.hash(senha, saltRounds);
@@ -109,7 +119,7 @@ app.post('/users', async (req: Request, res: Response) => {
     }
 });
 
-app.delete('/users/:id/delete', async (req: Request, res: Response) => {
+app.delete('/users/:id/delete', isAuthenticated, async (req: Request, res: Response) => {
     const { id } = req.params;
 
     try {
@@ -121,7 +131,7 @@ app.delete('/users/:id/delete', async (req: Request, res: Response) => {
     }
 });
 
-app.get('/users/:id/edit', async (req: Request, res: Response) => {
+app.get('/users/:id/edit', isAuthenticated, async (req: Request, res: Response) => {
     const { id } = req.params;
 
     try {
@@ -140,8 +150,7 @@ app.get('/users/:id/edit', async (req: Request, res: Response) => {
     }
 });
 
-// Rota para atualizar usuário (POST)
-app.post('/users/:id/edit', async (req: Request, res: Response) => {
+app.post('/users/:id/edit', isAuthenticated, async (req: Request, res: Response) => {
     const { id } = req.params;
     const { nome, email, senha, papel, ativo } = req.body;
 
