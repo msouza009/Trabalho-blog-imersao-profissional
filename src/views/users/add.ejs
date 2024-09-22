@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro de Usuário</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <form action="/users" method="POST">
@@ -21,11 +22,21 @@
                 </div>
                 <div class="col-8 mb-3">
                     <label for="inputPassword" class="form-label">Senha</label>
-                    <input type="password" class="form-control" name="senha" id="inputPassword" placeholder="Senha" required>
+                    <div class="input-group">
+                        <input type="password" class="form-control" name="senha" id="inputPassword" placeholder="Senha" required>
+                        <span class="input-group-text">
+                            <i class="far fa-eye" id="togglePassword-create" style="cursor: pointer;"></i>
+                        </span>
+                    </div>
                 </div>
                 <div class="col-8 mb-3">
                     <label for="confirmPassword" class="form-label">Confirmação de Senha</label>
+                    <div class="input-group">
                     <input type="password" class="form-control" name="confirmSenha" id="confirmPassword" placeholder="Confirme a Senha" required>
+                    <span class="input-group-text">
+                        <i class="far fa-eye" id="togglePassword-confirm" style="cursor: pointer;"></i>
+                    </span>
+                    </div>
                 </div>
                 <div class="col-8 mb-3">
                     <label for="selectPapel" class="form-label">Papel</label>
@@ -45,8 +56,33 @@
             </div>
         </div>
     </form>
-    
-    
+    <script>
+        // Função corrigida para alternar visibilidade da senha
+        function togglePassword(passwordFieldId, toggleIconId) {
+            const passwordField = document.getElementById(passwordFieldId);
+            const toggleIcon = document.getElementById(toggleIconId);
+
+            // Alterna entre 'password' e 'text'
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        // Adicione os eventos de clique nos ícones correspondentes
+        document.getElementById('togglePassword-create').addEventListener('click', function () {
+            togglePassword('inputPassword', 'togglePassword-create');
+        });
+
+        document.getElementById('togglePassword-confirm').addEventListener('click', function () {
+            togglePassword('confirmPassword', 'togglePassword-confirm');
+        });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
