@@ -72,6 +72,46 @@ app.delete('/users/:id/delete', async (req: Request, res: Response) => {
     }
 });
 
+app.get('/users/:id/edit', async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    try {
+        const [rows] = await connection.execute('SELECT * FROM users WHERE id = ?', [id]);
+        
+        // Verifica se o usuário foi encontrado
+        if ((rows as any[]).length === 0) { // Converta 'rows' para array explicitamente
+            return res.status(404).send('Usuário não encontrado.');
+        }
+
+        return res.render('users/edit', {
+            user: rows[0] // Passa o usuário encontrado para a view
+        });
+    } catch (error) {
+        console.error('Erro ao buscar usuário para edição:', error);
+        res.status(500).send('Erro ao buscar usuário.');
+    }
+});
+
+// Rota para atualizar usuário (POST)
+app.post('/users/:id/edit', async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { nome, email, senha, papel, ativo } = req.body;
+
+    const ativoValue = ativo ? 1 : 0;
+
+    try {
+        await connection.execute(
+            'UPDATE users SET nome = ?, email = ?, senha = ?, papel = ?, ativo = ? WHERE id = ?', 
+            [nome, email, senha, papel, ativoValue, id]
+        );
+
+        res.redirect('/users'); 
+    } catch (error) {
+        console.error('Erro ao atualizar usuário:', error);
+        res.status(500).send('Erro ao atualizar usuário.');
+    }
+});
+
 
 const port = 3000;
 app.listen(port, () => {
