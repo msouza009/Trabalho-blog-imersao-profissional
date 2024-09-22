@@ -1,7 +1,7 @@
-import express, {Request, Response} from "express";
-import { connect } from "http2";
+import express, { Request, Response } from "express";
 import mysql from "mysql2/promise";
-import { format } from 'date-fns';
+import session from 'express-session';
+import bcrypt from 'bcrypt';
 
 const app = express();
 
@@ -17,9 +17,51 @@ const connection = mysql.createPool({
 });
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true}))
+app.use(express.urlencoded({ extended: true }));
 
-app.get('/users', async function (req: Request, res: Response) {
+app.use(session({
+    secret: '$#$123', // Substitua por uma chave secreta segura
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false } // Defina como 'true' se estiver usando HTTPS
+}));
+
+app.get('/login', async (req: Request, res: Response) => {
+    return res.render('users/login'); 
+});
+
+app.post('/login', async (req: Request, res: Response) => {
+    const { email, senha } = req.body;
+
+    if (!email || !senha) {
+        return res.status(400).send('Email e senha são obrigatórios.');
+    }
+
+    try {
+        const [rows] = await connection.query('SELECT * FROM users WHERE email = ?', [email]);
+        if ((rows as any[]).length === 0) {
+            return res.status(401).send('Email ou senha inválidos.');
+        }
+
+        const user = (rows as any[])[0];
+
+        const senhaCorreta = await bcrypt.compare(senha, user.senha);
+        if (!senhaCorreta) {
+            return res.status(401).send('Email ou senha inválidos.');
+        }
+
+        req.session.userId = user.id;
+        req.session.userName = user.nome;
+
+        res.redirect('/users');
+    } catch (error) {
+        console.log('Erro ao realizar login:', error);
+        res.status(500).send('Erro ao realizar login');
+    }
+});
+
+
+app.get('/users', async (req: Request, res: Response) => {
     try {
         const [rows] = await connection.query("SELECT * FROM users");
         return res.render('users/index', {
@@ -31,12 +73,11 @@ app.get('/users', async function (req: Request, res: Response) {
     }
 });
 
-
-app.get('/users/add', async function (req: Request, res: Response) {
+app.get('/users/add', async (req: Request, res: Response) => {
     return res.render('users/add'); 
 });
 
-app.post('/users', async (req, res) => {
+app.post('/users', async (req: Request, res: Response) => {
     const { nome, email, senha, confirmSenha, papel, ativo } = req.body;
 
     if (!nome || !email || !senha || !papel) {
@@ -49,9 +90,12 @@ app.post('/users', async (req, res) => {
 
     const ativoValue = ativo ? 1 : 0;
 
+    // Hash a senha antes de armazenar
+    const saltRounds = 10;
     try {
+        const hashedPassword = await bcrypt.hash(senha, saltRounds);
         await connection.query('INSERT INTO users (nome, email, senha, papel, ativo) VALUES (?, ?, ?, ?, ?)', 
-            [nome, email, senha, papel, ativoValue]);
+            [nome, email, hashedPassword, papel, ativoValue]);
 
         res.redirect('/users'); 
     } catch (error) {
@@ -65,10 +109,10 @@ app.delete('/users/:id/delete', async (req: Request, res: Response) => {
 
     try {
         await connection.query('DELETE FROM users WHERE id = ?', [id]);
-        res.json({message: 'Usuário deletado com sucesso'});
+        res.json({ message: 'Usuário deletado com sucesso' });
     } catch (error) {
-        console.log('Erro ao deleter o usuário:', error);
-        res.status(500).send('Erro ao deleter usuário');
+        console.log('Erro ao deletar o usuário:', error);
+        res.status(500).send('Erro ao deletar usuário');
     }
 });
 
@@ -79,7 +123,7 @@ app.get('/users/:id/edit', async (req: Request, res: Response) => {
         const [rows] = await connection.execute('SELECT * FROM users WHERE id = ?', [id]);
         
         // Verifica se o usuário foi encontrado
-        if ((rows as any[]).length === 0) { // Converta 'rows' para array explicitamente
+        if ((rows as any[]).length === 0) {
             return res.status(404).send('Usuário não encontrado.');
         }
 
@@ -111,7 +155,6 @@ app.post('/users/:id/edit', async (req: Request, res: Response) => {
         res.status(500).send('Erro ao atualizar usuário.');
     }
 });
-
 
 const port = 3000;
 app.listen(port, () => {
