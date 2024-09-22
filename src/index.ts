@@ -2,11 +2,13 @@ import express, { Request, Response } from "express";
 import mysql from "mysql2/promise";
 import session from 'express-session';
 import bcrypt from 'bcrypt';
+import path from "path";
 
 const app = express();
 
 app.set('view engine', 'ejs');
 app.set('views', `${__dirname}/views`);
+app.use(express.static(path.join(__dirname, 'public')));
 
 const connection = mysql.createPool({
     host: "db",
@@ -20,11 +22,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
-    secret: '$#$123', // Substitua por uma chave secreta segura
+    secret: '$#$123',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false } // Defina como 'true' se estiver usando HTTPS
+    cookie: { secure: false }
 }));
+
+app.get('/', async (req: Request, res: Response) => {
+    return res.render('index');
+});
 
 app.get('/login', async (req: Request, res: Response) => {
     return res.render('users/login'); 
