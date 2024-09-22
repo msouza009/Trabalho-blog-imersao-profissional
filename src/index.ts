@@ -60,7 +60,6 @@ app.post('/login', async (req: Request, res: Response) => {
     }
 });
 
-
 app.get('/users', async (req: Request, res: Response) => {
     try {
         const [rows] = await connection.query("SELECT * FROM users");
@@ -122,13 +121,12 @@ app.get('/users/:id/edit', async (req: Request, res: Response) => {
     try {
         const [rows] = await connection.execute('SELECT * FROM users WHERE id = ?', [id]);
         
-        // Verifica se o usuário foi encontrado
         if ((rows as any[]).length === 0) {
             return res.status(404).send('Usuário não encontrado.');
         }
 
         return res.render('users/edit', {
-            user: rows[0] // Passa o usuário encontrado para a view
+            user: rows[0]
         });
     } catch (error) {
         console.error('Erro ao buscar usuário para edição:', error);
