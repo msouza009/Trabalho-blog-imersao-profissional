@@ -11,7 +11,7 @@ app.set('views', `${__dirname}/views`);
 app.use(express.static(path.join(__dirname, 'public')));
 
 const connection = mysql.createPool({
-    host: "db",
+    host: "db", // Ajuste o host conforme necessário
     port: 3306,
     user: "root",
     password: "mudar123",
@@ -34,6 +34,45 @@ function isAuthenticated(req: Request, res: Response, next: () => void) {
     }
     next();
 }
+
+async function createDefaultUser() {
+    const createTableQuery = `
+        CREATE TABLE IF NOT EXISTS users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            nome VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL UNIQUE,
+            senha VARCHAR(255) NOT NULL,
+            papel VARCHAR(50) NOT NULL,
+            ativo TINYINT DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        );
+    `;
+
+    const defaultEmail = "admin@admin.com";
+    const defaultPassword = "admin";
+    const defaultUserName = "Administrador";
+
+    try {
+        await connection.query(createTableQuery);
+
+        const [rows] = await connection.query('SELECT * FROM users WHERE email = ?', [defaultEmail]);
+        if ((rows as any[]).length === 0) {
+            const saltRounds = 10;
+            const hashedPassword = await bcrypt.hash(defaultPassword, saltRounds);
+            await connection.query('INSERT INTO users (nome, email, senha, papel, ativo) VALUES (?, ?, ?, ?, ?)', 
+                [defaultUserName, defaultEmail, hashedPassword, 'admin', 1]);
+            console.log(`Usuário padrão criado: Email - ${defaultEmail}, Senha - ${defaultPassword}`);
+        } else {
+            console.log('Usuário padrão já existe.');
+        }
+    } catch (error) {
+        console.error('Erro ao verificar/criar a tabela e o usuário padrão:', error);
+    }
+}
+
+createDefaultUser();
+
 
 app.get('/', (req: Request, res: Response) => {
     if (req.session.userId) {
