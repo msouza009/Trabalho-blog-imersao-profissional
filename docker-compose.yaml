@@ -1,13 +1,28 @@
 services:
   db:
-    image: mysql
+    container_name: mysql_8
+    image: mysql:8
     environment:
       MYSQL_ROOT_PASSWORD: "mudar123"
       MYSQL_DATABASE: "unicesumar"
     ports:
       - "3306:3306"
+    volumes:
+      - ./datadir:/var/lib/mysql  
   
   adminer:
     image: adminer
     ports:
       - 8080:8080
+
+  frontend:
+    container_name: blog_cesumar
+    image: node:18.20.4
+    ports:
+      - 3000:3000
+    volumes:
+      - ./:/app/
+    links:
+      - db  
+    command: npm start
+    working_dir: /app/

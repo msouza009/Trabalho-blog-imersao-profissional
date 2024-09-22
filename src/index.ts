@@ -9,7 +9,7 @@ app.set('view engine', 'ejs');
 app.set('views', `${__dirname}/views`);
 
 const connection = mysql.createPool({
-    host: "localhost",
+    host: "db",
     port: 3306,
     user: "root",
     password: "mudar123",
@@ -23,13 +23,14 @@ app.get('/users', async function (req: Request, res: Response) {
     try {
         const [rows] = await connection.query("SELECT * FROM users");
         return res.render('users/index', {
-            users: rows  
+            users: rows 
         });
     } catch (err) {
         console.error(err);
         res.status(500).send("Erro ao buscar usuários");
     }
 });
+
 
 app.get('/users/add', async function (req: Request, res: Response) {
     return res.render('users/add'); 
@@ -58,6 +59,19 @@ app.post('/users', async (req, res) => {
         res.status(500).send('Erro ao cadastrar usuário.');
     }
 });
+
+app.delete('/users/:id/delete', async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    try {
+        await connection.query('DELETE FROM users WHERE id = ?', [id]);
+        res.json({message: 'Usuário deletado com sucesso'});
+    } catch (error) {
+        console.log('Erro ao deleter o usuário:', error);
+        res.status(500).send('Erro ao deleter usuário');
+    }
+});
+
 
 const port = 3000;
 app.listen(port, () => {
