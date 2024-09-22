@@ -10,11 +10,13 @@ services:
     volumes:
       - ./datadir:/var/lib/mysql
       - ./init-user.sql:/docker-entrypoint-initdb.d/init-user.sql
-  
+    restart: unless-stopped
+
   adminer:
     image: adminer
     ports:
       - 8080:8080
+    restart: unless-stopped
 
   frontend:
     container_name: blog_cesumar
@@ -24,6 +26,9 @@ services:
     volumes:
       - ./:/app/
     links:
-      - db  
+      - db
+    depends_on:
+      - db
     command: npm start
     working_dir: /app/
+    restart: unless-stopped
