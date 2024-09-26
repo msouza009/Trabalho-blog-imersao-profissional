@@ -12,6 +12,6 @@
  ### Dados de Login
 
  - Email: admin@admin.com
- - Senha: admin
+ - Senha: 1234
 
  Para conseguir acessar a plataforma é necessário estar logado;
