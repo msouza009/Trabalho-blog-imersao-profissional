@@ -9,6 +9,11 @@ services:
       - "3306:3306"
     volumes:
       - ./datadir:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
   adminer:
@@ -18,16 +23,19 @@ services:
     restart: unless-stopped
 
   frontend:
-    container_name: blog_cesumar
     image: node:18.20.4
     ports:
-      - 3000:3000
-    volumes:
-      - ./:/app/
-    links:
-      - db
+      - "3000:3000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    working_dir: /app
     command: npm start
-    working_dir: /app/
+    environment:
+      MYSQL_HOST: db
+      MYSQL_USER: root
+      MYSQL_PASSWORD: mudar123
+      MYSQL_DATABASE: unicesumar
     restart: unless-stopped
