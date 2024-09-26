@@ -56,7 +56,7 @@ async function createDefaultUser() {
     `;
 
     const defaultEmail = "admin@admin.com";
-    const defaultPassword = "admin";
+    const defaultPassword = "1234"; // Senha ajustada para "1234"
     const defaultUserName = "Administrador";
 
     try {
@@ -80,8 +80,26 @@ async function createDefaultUser() {
     }
 }
 
-// Chamada da função de criação de tabela/usuário antes de iniciar o servidor
-createDefaultUser().then(() => {
+// Função para aguardar a disponibilidade do banco de dados
+async function waitForDatabaseConnection() {
+    let isConnected = false;
+    while (!isConnected) {
+        try {
+            await connection.query('SELECT 1');
+            isConnected = true;
+            console.log('Conectado ao banco de dados com sucesso.');
+        } catch (error) {
+            console.log('Tentando se conectar ao banco de dados...');
+            await new Promise(res => setTimeout(res, 2000)); // Aguarde 2 segundos antes de tentar novamente
+        }
+    }
+}
+
+// Chamada da função de criação de tabela/usuário após garantir que o banco está pronto
+waitForDatabaseConnection().then(async () => {
+    await createDefaultUser();
+    console.log("Usuário padrão verificado/criado.");
+
     // Rotas da aplicação
     app.get('/', (req: Request, res: Response) => {
         if (req.session.userId) {
