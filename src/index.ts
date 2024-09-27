@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 import mysql from "mysql2/promise";
 import session from 'express-session';
-import bcrypt from 'bcrypt';
 import path from "path";
 
 const app = express();
@@ -59,10 +58,8 @@ async function createDefaultUser() {
 
         const [rows] = await connection.query('SELECT * FROM users WHERE email = ?', [defaultEmail]);
         if ((rows as any[]).length === 0) {
-            const saltRounds = 10;
-            const hashedPassword = await bcrypt.hash(defaultPassword, saltRounds);
             await connection.query('INSERT INTO users (nome, email, senha, papel, ativo) VALUES (?, ?, ?, ?, ?)', 
-                [defaultUserName, defaultEmail, hashedPassword, 'admin', 1]);
+                [defaultUserName, defaultEmail, defaultPassword, 'admin', 1]);
             console.log(`Usuário padrão criado: Email - ${defaultEmail}, Senha - ${defaultPassword}`);
         } else {
             console.log('Usuário padrão já existe.');
@@ -116,9 +113,8 @@ waitForDatabaseConnection().then(async () => {
             }
 
             const user = (rows as any[])[0];
-            const senhaCorreta = await bcrypt.compare(senha, user.senha);
 
-            if (!senhaCorreta) {
+            if (senha !== user.senha) {
                 return res.status(401).send('Email ou senha inválidos.');
             }
 
@@ -144,7 +140,7 @@ waitForDatabaseConnection().then(async () => {
         }
     });
 
-    app.get('/users/add', isAuthenticated, async (req: Request, res: Response) => {
+    app.get('/users/add', async (req: Request, res: Response) => {
         return res.render('users/add'); 
     });
 
@@ -160,12 +156,10 @@ waitForDatabaseConnection().then(async () => {
         }
 
         const ativoValue = ativo ? 1 : 0;
-        const saltRounds = 10;
 
         try {
-            const hashedPassword = await bcrypt.hash(senha, saltRounds);
             await connection.query('INSERT INTO users (nome, email, senha, papel, ativo) VALUES (?, ?, ?, ?, ?)', 
-                [nome, email, hashedPassword, papel, ativoValue]);
+                [nome, email, senha, papel, ativoValue]);
 
             res.redirect('/users'); 
         } catch (error) {
