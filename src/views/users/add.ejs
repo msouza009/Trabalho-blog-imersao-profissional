@@ -57,12 +57,10 @@
         </div>
     </form>
     <script>
-        // Função corrigida para alternar visibilidade da senha
         function togglePassword(passwordFieldId, toggleIconId) {
             const passwordField = document.getElementById(passwordFieldId);
             const toggleIcon = document.getElementById(toggleIconId);
 
-            // Alterna entre 'password' e 'text'
             if (passwordField.type === 'password') {
                 passwordField.type = 'text';
                 toggleIcon.classList.remove('fa-eye');
@@ -74,7 +72,6 @@
             }
         }
 
-        // Adicione os eventos de clique nos ícones correspondentes
         document.getElementById('togglePassword-create').addEventListener('click', function () {
             togglePassword('inputPassword', 'togglePassword-create');
         });

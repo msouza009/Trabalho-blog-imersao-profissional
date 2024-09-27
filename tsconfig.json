@@ -6,7 +6,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "outDir": "./dist",
-    "typeRoots": ["./node_modules/@types", "./@types"] // Adicione esta linha
+    "typeRoots": ["./node_modules/@types", "./@types"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]

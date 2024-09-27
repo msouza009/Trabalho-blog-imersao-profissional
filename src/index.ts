@@ -6,25 +6,21 @@ import path from "path";
 
 const app = express();
 
-// Configuração do EJS como motor de visualização
 app.set('view engine', 'ejs');
 app.set('views', `${__dirname}/views`);
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Conexão com o banco de dados
 const connection = mysql.createPool({
-    host: "db", // Ajuste o host conforme necessário
+    host: "db",
     port: 3306,
     user: "root",
     password: "mudar123",
     database: "unicesumar"
 });
 
-// Middleware para parsing de JSON e urlencoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Configuração de sessão
 app.use(session({
     secret: '$#$123',
     resave: false,
@@ -32,7 +28,6 @@ app.use(session({
     cookie: { secure: false }
 }));
 
-// Middleware de autenticação
 function isAuthenticated(req: Request, res: Response, next: () => void) {
     if (!req.session.userId) {
         return res.redirect('/login');
@@ -40,7 +35,6 @@ function isAuthenticated(req: Request, res: Response, next: () => void) {
     next();
 }
 
-// Função para criar usuário padrão e tabela
 async function createDefaultUser() {
     const createTableQuery = `
         CREATE TABLE IF NOT EXISTS users (
@@ -56,15 +50,13 @@ async function createDefaultUser() {
     `;
 
     const defaultEmail = "admin@admin.com";
-    const defaultPassword = "1234"; // Senha ajustada para "1234"
+    const defaultPassword = "1234";
     const defaultUserName = "Administrador";
 
     try {
-        // Criação da tabela se não existir
         await connection.query(createTableQuery);
         console.log("Tabela 'users' verificada/criada com sucesso.");
 
-        // Verificação de existência do usuário padrão
         const [rows] = await connection.query('SELECT * FROM users WHERE email = ?', [defaultEmail]);
         if ((rows as any[]).length === 0) {
             const saltRounds = 10;
@@ -80,7 +72,6 @@ async function createDefaultUser() {
     }
 }
 
-// Função para aguardar a disponibilidade do banco de dados
 async function waitForDatabaseConnection() {
     let isConnected = false;
     while (!isConnected) {
@@ -90,17 +81,15 @@ async function waitForDatabaseConnection() {
             console.log('Conectado ao banco de dados com sucesso.');
         } catch (error) {
             console.log('Tentando se conectar ao banco de dados...');
-            await new Promise(res => setTimeout(res, 2000)); // Aguarde 2 segundos antes de tentar novamente
+            await new Promise(res => setTimeout(res, 2000));
         }
     }
 }
 
-// Chamada da função de criação de tabela/usuário após garantir que o banco está pronto
 waitForDatabaseConnection().then(async () => {
     await createDefaultUser();
     console.log("Usuário padrão verificado/criado.");
 
-    // Rotas da aplicação
     app.get('/', (req: Request, res: Response) => {
         if (req.session.userId) {
             return res.render('index', { userName: req.session.userName });
@@ -235,7 +224,6 @@ waitForDatabaseConnection().then(async () => {
         }
     });
 
-    // Inicialização do servidor
     const port = 3000;
     app.listen(port, () => {
         console.log(`Servidor rodando em http://localhost:${port}`);
